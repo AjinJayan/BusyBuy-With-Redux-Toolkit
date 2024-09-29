@@ -1,9 +1,48 @@
-import { Link, Outlet } from "react-router-dom"
-import AuthProvider from "../contest/authContest"
-import { useAuthValue } from "../contest/authContest"
+import { Link, Outlet, Navigate } from "react-router-dom"
+import { authSelector, getCurrentUserAsync, signOutAsync } from "../redux/reducers/authReducer"
+import { useSelector, useDispatch } from "react-redux"
+import { useEffect } from "react";
+import { productActions, getCartStateAsync, getMyOrdersStateAsync } from "../redux/reducers/productReducer"
 
 function Content() {
-    const { currentUser, handleSignOut } = useAuthValue()
+    const dispatch = useDispatch()
+    const { currentUser } = useSelector(authSelector)
+
+    useEffect(() => {
+        // useEffect to get the already signin user
+        const getUser = dispatch(getCurrentUserAsync());
+        return () => {
+            getUser.abort(); // Aborts the thunk when the component unmounts
+        };
+    }, [dispatch]);
+
+    useEffect(() => {
+        // useEffect to get the currentUser cart items from database
+        if (currentUser) {
+            const promise = dispatch(getCartStateAsync(currentUser))
+            return () => {
+                promise.abort(); // Aborts the thunk when the component unmounts
+            };
+        }
+    }, [dispatch, currentUser]);
+
+    useEffect(() => {
+        // useEffect to get the currentUser orders from database
+        if (currentUser) {
+            const promise = dispatch(getMyOrdersStateAsync(currentUser))
+            return () => {
+                promise.abort(); // Aborts the thunk when the component unmounts
+            };
+        }
+    }, [dispatch, currentUser]);
+
+
+
+    function handleSignOut() {
+        dispatch(signOutAsync())
+        // after signout clear all states ( all filters, carts, orders)
+        dispatch(productActions.resetAllProductStates())
+    }
 
     // signin and home only visible if user didn't signed in. If user signed in cart, myorder, home, signout will appear in navbar
     if (currentUser) {
@@ -50,6 +89,8 @@ function Content() {
 
     else {
         return (<>
+            <Navigate to="/" />
+
             <div className="flex flex-wrap justify-between pl-5 pr-5 sm:pl-14 sm:pr-24 py-4 bg-slate-100 shadow-xl font-semibold font-mono">
                 <Link to="/">
                     <div className="flex items-center gap-3">
@@ -80,7 +121,5 @@ function Content() {
 }
 
 export default function Navbar() {
-    return <AuthProvider>
-        <Content />
-    </AuthProvider>
+    return <Content />
 }

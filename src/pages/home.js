@@ -2,13 +2,41 @@ import GridSpinner from "../componnets/reactSpinner";
 import Item from "../componnets/Item";
 import Filter from "../componnets/Filter";
 import SearchBar from "../componnets/SearchBar";
-import { ProductContextProvider } from "../contest/productContest";
-import { useProductValue } from "../contest/productContest";
+import { productSelector, getIntialProductStateAsync, productActions } from "../redux/reducers/productReducer";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
 
-
-// Move useProductValue Inside the Provider: The hook useProductValue() should be called inside the provider to access the context value.
 function Content() {
-    const { products, loading } = useProductValue();
+    const dispatch = useDispatch()
+    const { filteredProducts, products, loading,
+        priceFilter, categoryFilter, searchBarFilter } = useSelector(productSelector)
+
+    // Fetch products details from database and set the IntialState
+    useEffect(() => {
+        const promise = dispatch(getIntialProductStateAsync());
+        return () => {
+            promise.abort(); // Aborts the thunk when the component unmounts
+        };
+    }, [dispatch]);
+
+
+    // useEffect hook for price filter, category filter, search bar input
+    useEffect(() => {
+        let filtered_products = products.filter((p) => p.price < priceFilter)
+        dispatch(productActions.setFilteredProducts([...filtered_products]))
+
+        if (categoryFilter.length !== 0) {
+            filtered_products = filtered_products.filter((p) => categoryFilter.includes(p.category))
+            dispatch(productActions.setFilteredProducts([...filtered_products]))
+        }
+        if (searchBarFilter !== "") {
+            filtered_products = filtered_products.filter((p) => p.title.replaceAll(/\s/g, '').toLowerCase().includes(searchBarFilter.replaceAll(/\s/g, '').toLowerCase()))
+            dispatch(productActions.setFilteredProducts([...filtered_products]))
+        }
+    }, [priceFilter, products, categoryFilter, searchBarFilter, dispatch])
+
+
+
     // code used to fetch the data of products and store it inside firebase database
 
     // useEffect(() => {
@@ -44,7 +72,7 @@ function Content() {
             <div className="h-screen flex">
                 <Filter />
                 <div className="m-10 gap-5  min-w-64 flex-1 flex flex-wrap justify-center overflow-y-scroll scrollbar-hide">
-                    {products.map((p, index) => (
+                    {filteredProducts.map((p, index) => (
                         <Item key={index} product={p} />
                     ))}
                 </div>
@@ -54,8 +82,6 @@ function Content() {
 
 export default function Home() {
     return (
-        <ProductContextProvider>
-            <Content />
-        </ProductContextProvider>
+        <Content />
     );
 }

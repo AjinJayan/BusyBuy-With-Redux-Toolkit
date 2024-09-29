@@ -1,19 +1,22 @@
-
-import { useAuthValue } from "../contest/authContest"
 import { createRef } from "react"
-import AuthProvider from "../contest/authContest"
-import { Navigate } from "react-router-dom"
+import { Navigate, useNavigate } from "react-router-dom"
+import { signUpAsync, authSelector } from "../redux/reducers/authReducer"
+import { useDispatch, useSelector } from "react-redux"
 
 function Content() {
 
-    const { handleSignUp, currentUser } = useAuthValue()
+    const { currentUser } = useSelector(authSelector)
+    const navigate = useNavigate()
+    const dispatch = useDispatch()
     const emailRef = createRef()
     const passwordRef = createRef()
     const nameRef = createRef()
 
     function submitBtnHandler(e) {
         e.preventDefault()
-        handleSignUp(emailRef.current.value, passwordRef.current.value, nameRef.current.value)
+        // dispatch action for signup
+        dispatch(signUpAsync({ email: emailRef.current.value, password: passwordRef.current.value, name: nameRef.current.value }))
+        if (currentUser) navigate("/")
     }
 
     // if user is already signed in and we are trying to access /signup then it will navigate back to home page
@@ -33,7 +36,5 @@ function Content() {
 }
 
 export default function SignUp() {
-    return <AuthProvider>
-        <Content />
-    </AuthProvider>
+    return <Content />
 }

@@ -6,10 +6,14 @@ import Cart from "./pages/cart";
 import MyOrders from "./pages/myOrders";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { store } from "./store";
+import { Provider } from "react-redux";
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
+
 function App() {
+
   // navbar is the parent rest all are its children
   const router = createBrowserRouter([{
     path: "/", element: <Navbar />, children: [
@@ -21,7 +25,10 @@ function App() {
     ]
   }])
   return (<>
-    <RouterProvider router={router}></RouterProvider>
+    <Provider store={store}>
+      <RouterProvider router={router}></RouterProvider>
+    </Provider>
+
     <ToastContainer />
   </>
 

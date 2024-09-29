@@ -1,9 +1,18 @@
-import { useProductValue } from "../contest/productContest"
-import { ProductContextProvider } from "../contest/productContest"
 import CartItem from "../componnets/CartItem"
+import { useDispatch, useSelector } from "react-redux"
+import { placeOrderAsync, productSelector } from "../redux/reducers/productReducer"
+import { useNavigate } from "react-router-dom"
 
 function Content() {
-    const { cart, placeOrderBtnHandler } = useProductValue()
+    const { cart } = useSelector(productSelector)
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
+
+    function placeOrderBtnHandler() {
+        dispatch(placeOrderAsync())
+        // once order is placed navigating to myorders page 
+        navigate("/myorders")
+    }
 
     if (cart.length === 0) return <div className="font-bold text-3xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">Cart is Empty</div>
 
@@ -24,7 +33,5 @@ function Content() {
 }
 
 export default function Cart() {
-    return <ProductContextProvider>
-        <Content />
-    </ProductContextProvider>
+    return <Content />
 }

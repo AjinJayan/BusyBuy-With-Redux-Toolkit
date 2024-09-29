@@ -1,7 +1,20 @@
-import { useProductValue } from "../contest/productContest"
+import { useNavigate } from "react-router-dom"
+import { useDispatch, useSelector } from "react-redux"
+import { addItemToCartDatabaseAsync } from "../redux/reducers/productReducer"
+import { authSelector } from "../redux/reducers/authReducer"
 
 export default function Item({ product }) {
-    const { addToCartHandler } = useProductValue()
+    const navigate = useNavigate()
+    const dispatch = useDispatch()
+    const { currentUser } = useSelector(authSelector)
+
+    async function addToCartHandler(product) {
+        // if user is not signed in and try to add items to cart, the will navigate to signin
+        if (currentUser == null) navigate("/signin")
+        else {
+            dispatch(addItemToCartDatabaseAsync(product))
+        }
+    }
 
     return <>
         <div className="shadow-2xl p-8 w-80 md:w-96 grid-col-1">

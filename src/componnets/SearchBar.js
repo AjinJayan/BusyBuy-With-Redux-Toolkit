@@ -1,12 +1,19 @@
-import { createRef } from "react"
-import { useProductValue } from "../contest/productContest"
+import { createRef, useEffect } from "react"
+import { useDispatch, useSelector } from "react-redux"
+import { productActions, productSelector } from "../redux/reducers/productReducer"
 
 export default function SearchBar() {
-    const { setSearchBarFilter } = useProductValue()
+    const dispatch = useDispatch()
+    const { searchBarFilter } = useSelector(productSelector)
     const searchInputRef = createRef()
 
+    useEffect(() => {
+        // this will fill the search field (set by user when he left home page) once user came back to home page
+        searchInputRef.current.value = searchBarFilter
+    }, [])
+
     function searchInputHandler() {
-        setSearchBarFilter(searchInputRef.current.value)
+        dispatch(productActions.setSearchBarFilter(searchInputRef.current.value))
     }
 
     return <>
